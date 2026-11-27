@@ -109,38 +109,75 @@ window.copyLink = function(btn) {
     setTimeout(() => btn.innerText = original, 2000);
 };
 
+// --- COOKIE PARSING HELPERS ---
+function parseCookies(raw) {
+    const out = {};
+    if (!raw) return out;
+    // normalize: allow newlines/tabs, split on ; and newlines
+    const parts = raw.replace(/\r/g, '').split(/[;\n]+/);
+    for (let i = 0; i < parts.length; i++) {
+        const p = parts[i].trim();
+        if (!p) continue;
+        const eq = p.indexOf('=');
+        if (eq === -1) continue;
+        let k = p.slice(0, eq).trim();
+        let v = p.slice(eq + 1).trim();
+        // strip surrounding quotes
+        if ((v.startsWith('"') && v.endsWith('"')) || (v.startsWith("'") && v.endsWith("'"))) {
+            v = v.slice(1, -1);
+        }
+        // decode if encoded
+        try { v = decodeURIComponent(v); } catch (e) {}
+        out[k] = v;
+    }
+    return out;
+}
+
 // --- NETFLIX COOKIE CHECKER LOGIC ---
 function checkNetflixCookie() {
-    const cookie = $('nf-cookie').value;
+    const raw = $('nf-cookie').value;
 
-    if (!cookie || !cookie.includes("NetflixId")) {
-        return alert("❌ Invalid cookie format. Must contain NetflixId.");
+    if (!raw || raw.trim() === '') {
+        return alert("❌ Paste a Netflix cookie first.");
+    }
+
+    const cookies = parseCookies(raw);
+
+    // find NetflixId case-insensitively
+    let nfid = null;
+    let snfid = null;
+    for (const k in cookies) {
+        if (k.toLowerCase() === 'netflixid') nfid = cookies[k];
+        if (k.toLowerCase() === 'securenetflixid') snfid = cookies[k];
+    }
+
+    if (!nfid) {
+        return alert("❌ Could not find NetflixId in the cookie. Make sure it's included.");
     }
 
     try {
-        const cookiePairs = cookie.split(';').map(c => c.trim());
-        let nfid = cookiePairs.find(c => c.startsWith("NetflixId="))?.split("=")[1] || null;
-        let snfid = cookiePairs.find(c => c.startsWith("SecureNetflixId="))?.split("=")[1] || null;
+        const encNf = encodeURIComponent(nfid);
+        const encSnf = snfid ? encodeURIComponent(snfid) : '';
 
-        if (!nfid) {
-            return alert("❌ Could not find NetflixId in the string.");
-        }
-
-        nfid = nfid.replace(/['"]+/g, '');
-        if (snfid) snfid = snfid.replace(/['"]+/g, '');
-
-        const tvLink = `https://www.netflix.com/activate?nftoken=${nfid}`;
-        const pcLink = `https://www.netflix.com/Login?nftoken=${nfid}`;
-        const mobileLink = `https://www.netflix.com/account?nftoken=${nfid}`;
+        const tvLink = `https://www.netflix.com/activate?nftoken=${encNf}`;
+        const pcLink = `https://www.netflix.com/Login?nftoken=${encNf}`;
+        const mobileLink = `https://www.netflix.com/account?nftoken=${encNf}`;
 
         const dashboardCard = $('generated-content-card');
         const dashboardResult = $('dashboard-result');
 
         dashboardCard.style.display = "block";
 
+        const cookiePreview = `${encNf.slice(0, 40)}${encNf.length > 40 ? '…' : ''}`;
+
         dashboardResult.innerHTML = `
             <div class="result-box" style="border-color: var(--gold);">
                 <div style="color: var(--gold); font-weight: bold; margin-bottom: 15px;">✅ Netflix Links Generated</div>
+
+                <div style="font-size: 12px; color: var(--text-muted); margin-bottom: 15px;">
+                    NetflixId: <span style="color: var(--accent);">${cookiePreview}</span><br>
+                    ${snfid ? 'SecureNetflixId: <span style="color: var(--accent);">✓ found</span>' : 'SecureNetflixId: <span style="color: var(--danger);">not found</span>'}
+                </div>
 
                 <div class="link-group">
                     <h4>📺 TV Login</h4>
