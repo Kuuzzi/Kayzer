@@ -1,176 +1,83 @@
 let isAdmin = false;
-let timerInterval = null;
 
-window.onload = function() {
-    if (sessionStorage.getItem('site_unlocked') === 'true') {
-        document.getElementById('login-screen').style.display = 'none';
-        document.getElementById('main-app').style.display = 'flex';
-        
-        if (sessionStorage.getItem('is_admin') === 'true') {
-            isAdmin = true;
-            document.getElementById('admin-nav').style.display = 'block';
-        }
-        loadDailyLimit();
-        loadStock();
-        startTimer();
+function $(id) { return document.getElementById(id); }
+
+function showApp() {
+    const login = $('login-screen');
+    const app = $('main-app');
+    if (login) { login.style.display = 'none'; login.style.pointerEvents = 'none'; }
+    if (app) { app.style.display = 'flex'; }
+}
+
+function bootUI() {
+    showApp();
+    if (isAdmin) {
+        const nav = $('admin-nav');
+        if (nav) nav.style.display = 'block';
     }
-};
+    loadStock();
+}
 
 window.checkPassword = function() {
-    const input = document.getElementById('pass-input').value;
+    const inputEl = $('pass-input');
+    const errEl = $('error-msg');
+    if (!inputEl) return;
+    const input = inputEl.value;
+
     if (input === SITE_PASSWORD) {
         sessionStorage.setItem('site_unlocked', 'true');
-        document.getElementById('login-screen').style.display = 'none';
-        document.getElementById('main-app').style.display = 'flex';
-        loadDailyLimit();
-        loadStock();
-        startTimer();
+        sessionStorage.removeItem('is_admin');
+        isAdmin = false;
+        bootUI();
     } else if (input === ADMIN_PASSWORD) {
         sessionStorage.setItem('site_unlocked', 'true');
         sessionStorage.setItem('is_admin', 'true');
         isAdmin = true;
-        document.getElementById('login-screen').style.display = 'none';
-        document.getElementById('main-app').style.display = 'flex';
-        document.getElementById('admin-nav').style.display = 'block';
-        loadDailyLimit();
-        loadStock();
-        startTimer();
-    } else {
-        document.getElementById('error-msg').innerText = "Incorrect password.";
+        bootUI();
+    } else if (errEl) {
+        errEl.innerText = "Incorrect password.";
     }
 };
 
 window.lockSite = function() {
     sessionStorage.clear();
+    isAdmin = false;
     window.location.reload();
 };
 
 window.switchTab = function(tabId, el) {
     document.querySelectorAll('.tab').forEach(t => t.classList.remove('active'));
     document.querySelectorAll('.nav-item').forEach(n => n.classList.remove('active'));
-    document.getElementById(tabId).classList.add('active');
-    if(el) el.classList.add('active');
-};
-
-// --- DAILY LIMIT & TIMER LOGIC ---
-function getTodayDate() { return new Date().toISOString().split('T')[0]; }
-
-function loadDailyLimit() {
-    if (isAdmin) {
-        document.getElementById('gen-display').innerText = "∞";
-        document.getElementById('timer-display').style.display = 'none';
-        document.getElementById('shortlink-btn').style.display = 'none';
-        document.querySelectorAll('.gen-card[id^="btn-"]').forEach(c => c.style.display = 'block');
-        return;
-    }
-    
-    const today = getTodayDate();
-    let gensToday = parseInt(localStorage.getItem('gens_date') === today ? localStorage.getItem('gens_count') : 0);
-    
-    if (localStorage.getItem('gens_date') !== today) {
-        localStorage.setItem('gens_date', today);
-        localStorage.setItem('gens_count', 0);
-        gensToday = 0;
-    }
-    
-    const remaining = Math.max(0, 2 - gensToday);
-    document.getElementById('gen-display').innerText = remaining + "/2";
-    
-    if (remaining >= 2) {
-        document.getElementById('shortlink-btn').style.display = 'none';
-        document.getElementById('timer-display').style.display = 'none';
-        document.querySelectorAll('.gen-card[id^="btn-"]').forEach(c => c.style.display = 'block');
-    } else if (remaining === 0) {
-        document.getElementById('shortlink-btn').style.display = 'block';
-        document.getElementById('timer-display').style.display = 'block';
-        document.querySelectorAll('.gen-card[id^="btn-"]').forEach(c => c.style.display = 'none');
-    } else {
-        document.getElementById('shortlink-btn').style.display = 'block';
-        document.getElementById('timer-display').style.display = 'none';
-        document.querySelectorAll('.gen-card[id^="btn-"]').forEach(c => c.style.display = 'block');
-    }
-}
-
-function startTimer() {
-    if (timerInterval) clearInterval(timerInterval);
-    
-    timerInterval = setInterval(() => {
-        if (isAdmin) return;
-        
-        const now = new Date();
-        const nextReset = new Date(Date.UTC(now.getUTCFullYear(), now.getUTCMonth(), now.getUTCDate() + 1));
-        const diff = nextReset - now;
-        
-        if (diff <= 0) {
-            loadDailyLimit();
-            return;
-        }
-        
-        const hours = Math.floor(diff / 3600000);
-        const mins = Math.floor((diff % 3600000) / 60000);
-        const secs = Math.floor((diff % 60000) / 1000);
-        
-        document.getElementById('timer-display').innerText = `(Resets in ${hours}h ${mins}m ${secs}s)`;
-    }, 1000);
-}
-
-function incrementGen() {
-    if (isAdmin) return;
-    let gensToday = parseInt(localStorage.getItem('gens_count') || 0) + 1;
-    localStorage.setItem('gens_count', gensToday);
-    loadDailyLimit();
-}
-
-// --- SHORTLINK / GET MORE GENERATES ---
-window.startShortlinkTask = function() {
-    if (isAdmin) return alert("Admins already have unlimited generations.");
-    
-    const shortlinkUrl = "https://your-shortlink-here.com"; 
-    window.open(shortlinkUrl, "_blank");
-    
-    const btn = event.target;
-    const originalText = btn.innerText;
-    btn.innerText = "Verifying...";
-    btn.disabled = true;
-    
-    setTimeout(() => {
-        let gensToday = parseInt(localStorage.getItem('gens_count') || 0);
-        if (gensToday > 0) {
-            localStorage.setItem('gens_count', gensToday - 1);
-        }
-        loadDailyLimit();
-        alert("Task complete! +1 Generation added.");
-        btn.innerText = originalText;
-        btn.disabled = false;
-    }, 5000); 
+    const tab = $(tabId);
+    if (tab) tab.classList.add('active');
+    if (el) el.classList.add('active');
 };
 
 // --- STOCK MANAGEMENT ---
 function loadStock() {
     const localStock = localStorage.getItem('stock');
     if (localStock) {
-        STOCKS = JSON.parse(localStock);
+        try { STOCKS = JSON.parse(localStock); } catch (e) {}
     }
     updateStockViewer();
 }
 
 function updateStockViewer() {
-    if(document.getElementById('stock-viewer')) {
-        document.getElementById('stock-viewer').innerText = JSON.stringify(STOCKS, null, 2);
-    }
+    const viewer = $('stock-viewer');
+    if (viewer) viewer.innerText = JSON.stringify(STOCKS, null, 2);
 }
 
 window.addStock = function() {
-    const service = document.getElementById('stock-service').value;
-    const data = document.getElementById('stock-data').value;
+    const service = $('stock-service').value;
+    const data = $('stock-data').value;
     if (!data) return alert("Paste data first");
-    
+
     if (!STOCKS[service]) STOCKS[service] = [];
     STOCKS[service].push(data);
-    
+
     localStorage.setItem('stock', JSON.stringify(STOCKS));
     updateStockViewer();
-    document.getElementById('stock-data').value = "";
+    $('stock-data').value = "";
     alert("Stock added locally! Don't forget to Export Config.");
 };
 
@@ -180,25 +87,18 @@ window.exportConfig = function() {
     alert("Config copied to clipboard! Paste it into config.js.");
 };
 
-// --- GENERATE LOGIC ---
+// --- GENERATE LOGIC (no daily limit) ---
 function generate(service) {
-    let currentGens = parseInt(localStorage.getItem('gens_count') || 0);
-    
-    if (!isAdmin && currentGens >= 2) {
-        return alert(`❌ You have 0 generations left. Wait for the timer on the dashboard to reset.`);
-    }
-
     const stockList = STOCKS[service];
     if (!stockList || stockList.length === 0) {
         return alert("❌ Out of stock for this service.");
     }
 
     const randomItem = stockList[Math.floor(Math.random() * stockList.length)];
-    incrementGen();
 
-    const dashboardCard = document.getElementById('generated-content-card');
-    const dashboardResult = document.getElementById('dashboard-result');
-    
+    const dashboardCard = $('generated-content-card');
+    const dashboardResult = $('dashboard-result');
+
     dashboardCard.style.display = "block";
     dashboardResult.innerHTML = `
         <div class="result-box">
@@ -208,7 +108,7 @@ function generate(service) {
             <button class="copy-btn" data-text="${randomItem.replace(/"/g, '&quot;')}" onclick="copyText(this)">📋 Copy Cookie</button>
         </div>
     `;
-    
+
     switchTab('dashboard', document.querySelector('.nav-item'));
 }
 
@@ -230,8 +130,8 @@ window.copyLink = function(btn) {
 
 // --- NETFLIX COOKIE CHECKER LOGIC ---
 function checkNetflixCookie() {
-    const cookie = document.getElementById('nf-cookie').value;
-    
+    const cookie = $('nf-cookie').value;
+
     if (!cookie || !cookie.includes("NetflixId")) {
         return alert("❌ Invalid cookie format. Must contain NetflixId.");
     }
@@ -252,16 +152,15 @@ function checkNetflixCookie() {
         const pcLink = `https://www.netflix.com/Login?nftoken=${nfid}`;
         const mobileLink = `https://www.netflix.com/account?nftoken=${nfid}`;
 
-        const dashboardCard = document.getElementById('generated-content-card');
-        const dashboardResult = document.getElementById('dashboard-result');
-        
+        const dashboardCard = $('generated-content-card');
+        const dashboardResult = $('dashboard-result');
+
         dashboardCard.style.display = "block";
-        
-        // CHANGED: Removed the <a> tags, left only the copy buttons full width
+
         dashboardResult.innerHTML = `
             <div class="result-box" style="border-color: var(--gold);">
                 <div style="color: var(--gold); font-weight: bold; margin-bottom: 15px;">✅ Netflix Links Generated</div>
-                
+
                 <div class="link-group">
                     <h4>📺 TV Login</h4>
                     <div class="link-actions">
@@ -284,10 +183,31 @@ function checkNetflixCookie() {
                 </div>
             </div>
         `;
-        
+
         switchTab('dashboard', document.querySelector('.nav-item'));
-        
+
     } catch (e) {
         alert("❌ Error parsing cookie: " + e.message);
     }
-                                  }
+}
+
+// --- WIRE UP ON LOAD ---
+document.addEventListener('DOMContentLoaded', function () {
+    const btn = $('login-btn');
+    const input = $('pass-input');
+
+    if (btn) btn.addEventListener('click', window.checkPassword);
+    if (input) {
+        input.addEventListener('keydown', function (e) {
+            if (e.key === 'Enter') window.checkPassword();
+        });
+    }
+
+    if (sessionStorage.getItem('site_unlocked') === 'true') {
+        if (sessionStorage.getItem('is_admin') === 'true') isAdmin = true;
+        bootUI();
+    } else {
+        const login = $('login-screen');
+        if (login) { login.style.display = 'flex'; login.style.pointerEvents = 'auto'; }
+    }
+});
