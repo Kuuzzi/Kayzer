@@ -1,0 +1,43 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>Netflix Cookie Checker</title>
+<link rel="stylesheet" href="style.css">
+</head>
+<body>
+<div class="wrap">
+  <h1>Netflix Cookie Checker</h1>
+  <div class="sub">Paste a NetflixId cookie. Check live status + grab device login links.</div>
+
+  <div class="card">
+    <textarea id="cookie" placeholder="Paste Netscape (.txt) lines or a raw NetflixId=... value"></textarea>
+    <div class="row">
+      <button class="check" id="btnCheck">Check Cookie</button>
+      <button class="get" onclick="window.open('https://t.me/Kayzerprems','_blank')">Get Netflix Cookie</button>
+    </div>
+    <div class="err" id="err" style="display:none"></div>
+    <div class="hint">First check: opens a GitHub issue tab — tap <b>Submit new issue</b> there, then wait here. It takes ~30s.</div>
+  </div>
+
+  <div class="card result" id="result">
+    <div class="indicator">
+      <span class="dot checking" id="dot"></span>
+      <span id="statusText">Checking…</span>
+    </div>
+    <div class="info" id="info"></div>
+    
+    <div class="links" id="links">
+      <h3>Device Login Links</h3>
+      <div class="btn-row">
+        <a id="openPc" class="device-btn" target="_blank" rel="noopener" style="display:none">🖥 PC</a>
+        <a id="openMobile" class="device-btn" target="_blank" rel="noopener" style="display:none">📱 Mobile</a>
+        <a id="openTv" class="device-btn" target="_blank" rel="noopener" style="display:none">📺 TV</a>
+      </div>
+    </div>
+  </div>
+</div>
+<script src="script.js"></script>
+</body>
+</html>
