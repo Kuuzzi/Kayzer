@@ -54,7 +54,7 @@ button:disabled { background: var(--border); color: var(--text-muted); cursor: n
 .link-actions { display: flex; gap: 10px; }
 .link-actions a, .link-actions button { flex: 1; padding: 10px; text-align: center; text-decoration: none; border-radius: 6px; font-weight: bold; font-size: 14px; cursor: pointer; transition: 0.2s; border: none; display: flex; align-items: center; justify-content: center; }
 .link-actions a { background: var(--accent); color: #000; }
-.link-actions button { background: var(--border); color: var(--text); width: 100%; } /* CHANGED: Width 100% so it fills the space */
+.link-actions button { background: var(--border); color: var(--text); width: 100%; }
 .link-actions a:hover, .link-actions button:hover { opacity: 0.8; transform: scale(0.98); }
 
 select, textarea { background: var(--bg); border: 1px solid var(--border); color: #fff; padding: 15px; border-radius: 10px; width: 100%; font-size: 16px; outline: none; margin-bottom: 15px; }
@@ -73,4 +73,4 @@ select:focus, textarea:focus { border-color: var(--accent); }
   .gen-card { padding: 20px; }
   button { padding: 14px; font-size: 15px; }
   h2 { font-size: 22px; }
-                      }
+}
