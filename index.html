@@ -12,8 +12,8 @@
     <div class="login-box">
       <h2>Restricted Access</h2>
       <p style="color: var(--text-muted);">Enter password to continue</p>
-      <input type="password" id="pass-input" placeholder="Password...">
-      <button onclick="checkPassword()">Unlock</button>
+      <input type="password" id="pass-input" placeholder="Password..." autocomplete="off">
+      <button id="login-btn" type="button">Unlock</button>
       <p id="error-msg" style="color: var(--danger); margin-top: 10px; font-weight: bold;"></p>
     </div>
   </div>
@@ -30,17 +30,6 @@
     <div class="main">
       <div id="dashboard" class="tab active">
         <h2>Dashboard</h2>
-        
-        <div class="card">
-          <h3>Your Generations</h3>
-          <div style="display: flex; align-items: center; gap: 15px; margin-top: 10px; flex-wrap: wrap;">
-            <p style="font-size: 20px;">Available: <strong id="gen-display" style="color: var(--accent); font-size: 24px;">2/2</strong></p>
-            <p id="timer-display" style="font-size: 16px; color: var(--gold); font-weight: bold; display: none;"></p>
-          </div>
-          <p id="gen-reset-msg" style="color: var(--text-muted); font-size: 14px; margin-top: 5px;">Resets daily at 8:00 AM GMT+8.</p>
-          
-          <button id="shortlink-btn" onclick="startShortlinkTask()" style="margin-top: 15px; background: var(--gold); color: #000; display: none;">🚀 Get More Generates (Shortlink)</button>
-        </div>
 
         <div class="card" id="generated-content-card" style="display: none;">
           <h3>Your Generated Access</h3>
@@ -57,13 +46,6 @@
             <input type="text" id="nf-cookie" placeholder="Paste Netflix cookie (NetflixId=...)" style="width:100%; padding:15px; margin-bottom:15px; background:#050505; border:1px solid var(--border); color:#fff; border-radius: 10px;">
             <button onclick="checkNetflixCookie()">Check Cookie</button>
           </div>
-          
-          <div class="gen-card" id="btn-nf_cookie"><h3>🎬 Netflix Cookie</h3><button onclick="generate('netflix_cookie')">Get Cookie</button></div>
-          <div class="gen-card" id="btn-prime"><h3>📦 Prime Video</h3><button onclick="generate('prime')">Get Cookie</button></div>
-          <div class="gen-card" id="btn-disney"><h3>🏰 Disney+</h3><button onclick="generate('disney')">Get Cookie</button></div>
-          <div class="gen-card" id="btn-hbo"><h3>👾 HBO Max</h3><button onclick="generate('hbo')">Get Cookie</button></div>
-          <div class="gen-card" id="btn-crunchy"><h3>🍥 Crunchyroll</h3><button onclick="generate('crunchy')">Get Cookie</button></div>
-          <div class="gen-card" id="btn-spotify"><h3>🎵 Spotify</h3><button onclick="generate('spotify')">Get Cookie</button></div>
         </div>
       </div>
 
@@ -73,16 +55,11 @@
           <h3>Add Stock</h3>
           <select id="stock-service">
             <option value="netflix_cookie">Netflix Cookie</option>
-            <option value="prime">Prime Video</option>
-            <option value="disney">Disney+</option>
-            <option value="hbo">HBO Max</option>
-            <option value="crunchy">Crunchyroll</option>
-            <option value="spotify">Spotify</option>
           </select>
           <textarea id="stock-data" placeholder="Paste cookie/account here..." rows="3"></textarea>
           <button onclick="addStock()" style="margin-top: 5px;">Add to Stock</button>
         </div>
-        
+
         <div class="card">
           <h3>Current Stock</h3>
           <pre id="stock-viewer" style="background:#050505; padding:20px; color:var(--accent); max-height: 300px; overflow-y: auto; white-space: pre-wrap; border-radius: 10px; border: 1px solid var(--border); font-family: monospace;"></pre>
@@ -95,4 +72,4 @@
   <script src="config.js"></script>
   <script src="app.js"></script>
 </body>
-  </html>
+</html>
