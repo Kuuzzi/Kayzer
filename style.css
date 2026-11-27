@@ -38,4 +38,3 @@ button{cursor:pointer;border:none;border-radius:10px;padding:12px 18px;
             text-decoration:none;font-weight:600;font-size:14px;transition:.15s}
 .device-btn:hover{background:var(--line);border-color:var(--accent)}
 .err{color:var(--dead);font-size:13px;margin-top:12px}
-.hint{color:var(--dim);font-size:12px;margin-top:12px;line-height:1.5}
