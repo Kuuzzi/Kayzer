@@ -2,15 +2,17 @@ let isAdmin = false;
 
 function $(id) { return document.getElementById(id); }
 
-function showApp() {
-    const login = $('login-screen');
-    const app = $('main-app');
-    if (login) { login.style.display = 'none'; login.style.pointerEvents = 'none'; }
-    if (app) { app.style.display = 'flex'; }
-}
+// --- GUARD: no session, no entry ---
+(function guard() {
+    if (sessionStorage.getItem('site_unlocked') !== 'true') {
+        window.location.replace('login.html');
+    }
+})();
 
 function bootUI() {
-    showApp();
+    const app = $('main-app');
+    if (app) app.style.display = 'flex';
+
     if (isAdmin) {
         const nav = $('admin-nav');
         if (nav) nav.style.display = 'block';
@@ -18,31 +20,10 @@ function bootUI() {
     loadStock();
 }
 
-window.checkPassword = function() {
-    const inputEl = $('pass-input');
-    const errEl = $('error-msg');
-    if (!inputEl) return;
-    const input = inputEl.value;
-
-    if (input === SITE_PASSWORD) {
-        sessionStorage.setItem('site_unlocked', 'true');
-        sessionStorage.removeItem('is_admin');
-        isAdmin = false;
-        bootUI();
-    } else if (input === ADMIN_PASSWORD) {
-        sessionStorage.setItem('site_unlocked', 'true');
-        sessionStorage.setItem('is_admin', 'true');
-        isAdmin = true;
-        bootUI();
-    } else if (errEl) {
-        errEl.innerText = "Incorrect password.";
-    }
-};
-
 window.lockSite = function() {
     sessionStorage.clear();
     isAdmin = false;
-    window.location.reload();
+    window.location.replace('login.html');
 };
 
 window.switchTab = function(tabId, el) {
@@ -193,21 +174,8 @@ function checkNetflixCookie() {
 
 // --- WIRE UP ON LOAD ---
 document.addEventListener('DOMContentLoaded', function () {
-    const btn = $('login-btn');
-    const input = $('pass-input');
-
-    if (btn) btn.addEventListener('click', window.checkPassword);
-    if (input) {
-        input.addEventListener('keydown', function (e) {
-            if (e.key === 'Enter') window.checkPassword();
-        });
+    if (sessionStorage.getItem('is_admin') === 'true') {
+        isAdmin = true;
     }
-
-    if (sessionStorage.getItem('site_unlocked') === 'true') {
-        if (sessionStorage.getItem('is_admin') === 'true') isAdmin = true;
-        bootUI();
-    } else {
-        const login = $('login-screen');
-        if (login) { login.style.display = 'flex'; login.style.pointerEvents = 'auto'; }
-    }
+    bootUI();
 });
